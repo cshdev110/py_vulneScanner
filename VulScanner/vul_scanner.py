@@ -9,7 +9,7 @@ import scanner
 target_uri = "http://192.168.56.102/dvwa/"
 links_to_ignore = ["http://192.168.56.102/dvwa/logout.php"]
 data_dict = {"username": "admin", "password": "password", "Login": "submit"}
-# Every usege of requests, it logins and closes the session immediately logging out removing all cookies. 
+# Every usege of requests, it logins and closes the session immediately logging out and removing all cookies. 
 # That is an issue as the session is required to stay open.
 #response = requests.post(target_uri, data=data_dict)
 
@@ -20,5 +20,22 @@ vuln_scanner.session.post(target_uri + "login.php", data=data_dict)
 forms = vuln_scanner.extract_forms("http://192.168.56.102/dvwa/vulnerabilities/xss_r/")
 print(forms)
 
-response = vuln_scanner.submit_form(forms[0], "test", "http://192.168.56.102/dvwa/vulnerabilities/xss_r/")
-print(response.content.decode("utf-8", "ignore"))
+# # Just for testing purpose. This pice of code extract the text input from the form
+# response = vuln_scanner.submit_form(forms[0], "test-01", "http://192.168.56.102/dvwa/vulnerabilities/xss_r/")
+
+# print("\n")
+# str_to_extract_start = "<pre>"
+# str_to_extract_end = "</pre>"
+
+# start_indx = response.content.decode("utf-8", "ignore").find(str_to_extract_start)
+# end_indx = response.content.decode("utf-8", "ignore").find(str_to_extract_end)
+# start_indx = start_indx + len(str_to_extract_start)
+
+# print(response.content.decode("utf-8", "ignore")[start_indx:end_indx])
+# print("\n")
+# print(response.content.decode("utf-8", "ignore"))
+# # end testing purpose
+
+# Testing function test_xss_in_form
+response = vuln_scanner.test_xss_in_form(forms[0], "http://192.168.56.102/dvwa/vulnerabilities/xss_r/")
+print(response)

@@ -61,3 +61,21 @@ class Scanner:
             return self.session.post(post_uri, data=post_data)
         
         return self.session.get(post_uri, params=post_data)
+    
+
+    def run_scanner(self):
+        for link in self.target_links:
+            forms = self.extract_forms(link)
+            for form in forms:
+                print(">} Testing form in " + link)
+
+            if "=" in link:
+                print(">} Testing " + link)
+
+    
+    def test_xss_in_form(self, form, url):
+        xss_test_script = "<Script>alert('test')</Script>"
+        response = self.submit_form(form, xss_test_script, url)
+        if xss_test_script in response.content.decode("utf-8", "ignore"):
+            return True
+                
