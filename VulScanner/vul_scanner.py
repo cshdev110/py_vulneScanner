@@ -16,7 +16,16 @@ data_dict = {"username": "admin", "password": "password", "Login": "submit"}
 
 vuln_scanner = scanner.Scanner(target_uri, links_to_ignore)
 vuln_scanner.session.post(target_uri + "login.php", data=data_dict)
-# vuln_scanner.crawl()
+
+# This will crawl the target URI and extract all links from it.
+# It uses the target_uri supported when the Scanner class was initialized.
+vuln_scanner.crawl()
+
+# This will show whether the links contain forms or not.
+print("Links to scan:")
+vuln_scanner.run_scanner()
+
+# This will extract all forms from the target URI.
 forms = vuln_scanner.extract_forms("http://192.168.56.102/dvwa/vulnerabilities/xss_r/")
 print(forms)
 
