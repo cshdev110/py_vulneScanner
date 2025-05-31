@@ -75,24 +75,42 @@ class Scanner:
         if method == "post":
             return self.session.post(post_uri, data=post_data)
         
-        return self.session.get(post_uri, params=post_data)
-    
+        return self.session.get(post_uri, params=post_data)    
+
+    # This method tests for XSS vulnerabilities in a link by submitting a script tag.
+    def test_xss_in_link(self, uri):
+        xss_test_script = "<scRipt>alert('test')</Script>"
+        uri = uri.replace("=", "=" + xss_test_script)
+        response = self.session.get(uri)
+        return xss_test_script in response.content.decode("utf-8", "ignore")
+
+    # This method tests for XSS vulnerabilities in a form by submitting a script tag.
+    # It returns True if the script is found in the response, indicating a vulnerability.
+    def test_xss_in_form(self, form, uri):
+        # When metasploitable VM has its security level set to low, 
+        # it is vulnerable to XSS, and it just need to submit a script tag in the form
+        # like <script>alert('test')</script>
+        # If the security level is set to medium it will need a script tag with a different case
+        # like <Script>alert('test')</Script>
+        # If the security level is set to high, it will not be vulnerable to XSS.
+        xss_test_script = "<Script>alert('test')</Script>"
+        response = self.submit_form(form, xss_test_script, uri)
+        return xss_test_script in response.content.decode("utf-8", "ignore")
 
     # This method runs the scanner on the target links, extracting forms and testing for vulnerabilities.
     def run_scanner(self):
         for link in self.target_links:
             forms = self.extract_forms(link)
+            # Test for XSS in each form found in the link
             for form in forms:
-                print(">} Testing form in " + link)
+                vulnerable = self.test_xss_in_form(form, link)
+                print(f">> {vulnerable} >> form tested in {link}")
+                if vulnerable:
+                    print(f"\nVulnerable form to XSS: {form}\n")
 
+            # Test for XSS in the link itself
             if "=" in link:
-                print(">} Testing " + link)
-
-    # This method tests for XSS vulnerabilities in a form by submitting a script tag.
-    # It returns True if the script is found in the response, indicating a vulnerability.
-    def test_xss_in_form(self, form, url):
-        xss_test_script = "<Script>alert('test')</Script>"
-        response = self.submit_form(form, xss_test_script, url)
-        if xss_test_script in response.content.decode("utf-8", "ignore"):
-            return True
-                
+                vulnerable = self.test_xss_in_link(link)
+                print(f">> {vulnerable} >> link tested {link}")
+                if vulnerable:
+                    print(f"\nVulnerable link to XSS: {link}\n")
